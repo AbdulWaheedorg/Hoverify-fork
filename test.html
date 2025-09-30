@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Image Resizer with dom-to-image</title><style>body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        #drop-area {
+            border: 2px dashed #aaa;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        #preview {
+            margin: 20px auto;
+            display: inline-block;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        input {
+            width: 80px;
+            padding: 5px;
+            margin: 0 5px;
+        }
+        button {
+            padding: 8px 15px;
+            margin-top: 10px;
+            cursor: pointer;
+        }</style></head><body><h2>Image Resizer with dom-to-image</h2><div id="drop-area"><p>Drag & Drop an image here or click to select</p><input type="file" id="fileInput" accept="image/*" hidden></div><div id="preview" style="display:none;"><div id="image-container"><img id="uploadedImage"></div><div class="controls">Width: <input type="number" id="imgWidth"> Height: <input type="number" id="imgHeight"></div><button id="exportBtn">Export Resized Image</button></div><!-- dom-to-image library --><script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script><script>const dropArea = document.getElementById("drop-area");
+        const fileInput = document.getElementById("fileInput");
+        const preview = document.getElementById("preview");
+        const uploadedImage = document.getElementById("uploadedImage");
+        const imgWidth = document.getElementById("imgWidth");
+        const imgHeight = document.getElementById("imgHeight");
+        const exportBtn = document.getElementById("exportBtn");
+        const imageContainer = document.getElementById("image-container");
+
+        // Open file dialog on click
+        dropArea.addEventListener("click", () => fileInput.click());
+
+        // Handle file input
+        fileInput.addEventListener("change", handleFile);
+
+        // Handle drag & drop
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = "blue";
+        });
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.style.borderColor = "#aaa";
+        });
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = "#aaa";
+            handleFile({ target: { files: e.dataTransfer.files } });
+        });
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedImage.src = e.target.result;
+                uploadedImage.onload = function () {
+                    imgWidth.value = uploadedImage.naturalWidth;
+                    imgHeight.value = uploadedImage.naturalHeight;
+                    preview.style.display = "block";
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Update image size when inputs change
+        imgWidth.addEventListener("input", () => {
+            uploadedImage.style.width = imgWidth.value + "px";
+        });
+        imgHeight.addEventListener("input", () => {
+            uploadedImage.style.height = imgHeight.value + "px";
+        });
+
+        // Export resized image
+        exportBtn.addEventListener("click", () => {
+            domtoimage.toPng(imageContainer).then((dataUrl) => {
+                const link = document.createElement("a");
+                link.download = "resized-image.png";
+                link.href = dataUrl;
+                link.click();
+            });
+        });</script></body></html>
